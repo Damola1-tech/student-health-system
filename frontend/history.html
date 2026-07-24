@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Health History - EKSU Health Monitor</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4f0;
+      min-height: 100vh;
+    }
+    .navbar {
+      background: #1a6b3c;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+    }
+    .navbar h2 { font-size: 16px; font-weight: 700; }
+    .back-btn {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .main { max-width: 800px; margin: 0 auto; padding: 24px 16px; }
+    .page-title {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      border-left: 5px solid #1a6b3c;
+    }
+    .page-title h3 { color: #1a6b3c; font-size: 18px; }
+    .page-title p { color: #666; font-size: 13px; margin-top: 4px; }
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+    .empty h3 { font-size: 18px; margin-bottom: 8px; }
+    .empty p { font-size: 14px; }
+    .log-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border-left: 5px solid #ddd;
+    }
+    .log-card.green { border-left-color: #4caf50; }
+    .log-card.orange { border-left-color: #ff9800; }
+    .log-card.red { border-left-color: #f44336; }
+    .log-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .risk-tag {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+    }
+    .green .risk-tag { background: #4caf50; }
+    .orange .risk-tag { background: #ff9800; }
+    .red .risk-tag { background: #f44336; }
+    .log-date { font-size: 12px; color: #999; }
+    .score-text {
+      font-size: 24px;
+      font-weight: 700;
+      color: #333;
+    }
+    .log-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .log-item {
+      background: #f8f8f8;
+      border-radius: 8px;
+      padding: 8px 12px;
+    }
+    .log-item .log-label {
+      font-size: 11px;
+      color: #999;
+      margin-bottom: 2px;
+    }
+    .log-item .log-value {
+      font-size: 13px;
+      color: #333;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+    .recs-section { margin-top: 14px; }
+    .recs-section h4 {
+      font-size: 13px;
+      color: #555;
+      margin-bottom: 8px;
+    }
+    .rec-item {
+      font-size: 12px;
+      color: #444;
+      padding: 6px 10px;
+      background: #f0f7f0;
+      border-radius: 6px;
+      margin-bottom: 4px;
+      border-left: 2px solid #1a6b3c;
+      line-height: 1.4;
+    }
+    .back-to-dash {
+      width: 100%;
+      padding: 13px;
+      background: #1a6b3c;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    @media (max-width: 500px) {
+      .log-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="navbar">
+    <h2>📊 Health History</h2>
+    <button class="back-btn" onclick="window.location.href='/dashboard.html'">← Back</button>
+  </div>
+
+  <div class="main">
+    <div class="page-title">
+      <h3>Your Health Log</h3>
+      <p>Your last 10 health check-ins are shown below, most recent first.</p>
+    </div>
+
+    <div id="logContainer"></div>
+
+    <button class="back-to-dash" onclick="window.location.href='/dashboard.html'">
+      📋 Go to Dashboard
+    </button>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/';
+
+    async function loadHistory() {
+      const res = await fetch('/api/health/history', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+      const data = await res.json();
+
+      const container = document.getElementById('logContainer');
+
+      if (!data.logs || data.logs.length === 0) {
+        container.innerHTML = `
+          <div class="empty">
+            <h3>No logs yet</h3>
+            <p>Complete your first health check-in on the dashboard to see your history here.</p>
+          </div>`;
+        return;
+      }
+
+      data.logs.forEach(log => {
+        const color = log.risk === 'Low Risk' ? 'green' : log.risk === 'Medium Risk' ? 'orange' : 'red';
+        const date = new Date(log.logged_at).toLocaleString('en-NG', {
+          day: 'numeric', month: 'short', year: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        });
+
+        const recs = (log.recommendations || []).slice(0, 2).map(r =>
+          `<div class="rec-item">${r}</div>`
+        ).join('');
+
+        const bmiText = log.bmi ? log.bmi + ' kg/m²' : 'N/A';
+
+        container.innerHTML += `
+          <div class="log-card ${color}">
+            <div class="log-header">
+              <div>
+                <div class="score-text">${log.score} pts</div>
+                <div class="log-date">${date}</div>
+              </div>
+              <span class="risk-tag">${log.risk}</span>
+            </div>
+            <div class="log-grid">
+              <div class="log-item">
+                <div class="log-label">💧 Water</div>
+                <div class="log-value">${log.water || 'N/A'}</div>
+              </div>
+              <div class="log-item">
+                <div class="log-label">😴 Sleep</div>
+                <div class="log-value">${log.sleep || 'N/A'}</div>
+              </div>
+              <div class="log-item">
+                <div class="log-label">🍽️ Meals</div>
+                <div class="log-value">${log.meals || 'N/A'}</div>
+              </div>
+              <div class="log-item">
+                <div class="log-label">😰 Stress</div>
+                <div class="log-value">${log.stress || 'N/A'}</div>
+              </div>
+              <div class="log-item">
+                <div class="log-label">😩 Fatigue</div>
+                <div class="log-value">${log.fatigue || 'N/A'}</div>
+              </div>
+              <div class="log-item">
+                <div class="log-label">📊 BMI</div>
+                <div class="log-value">${bmiText}</div>
+              </div>
+            </div>
+            <div class="recs-section">
+              <h4>💡 Top Recommendations</h4>
+              ${recs}
+            </div>
+          </div>`;
+      });
+    }
+
+    loadHistory();
+  </script>
+</body>
+</html>

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard - EKSU Health Monitor</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f4f0;
+      min-height: 100vh;
+    }
+    .navbar {
+      background: #1a6b3c;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+    }
+    .navbar h2 { font-size: 16px; font-weight: 700; }
+    .navbar span { font-size: 13px; opacity: 0.85; }
+    .logout {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .main { max-width: 800px; margin: 0 auto; padding: 24px 16px; }
+    .welcome {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      border-left: 5px solid #1a6b3c;
+    }
+    .welcome h3 { color: #1a6b3c; font-size: 18px; }
+    .welcome p { color: #666; font-size: 13px; margin-top: 4px; }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .card h3 {
+      color: #1a6b3c;
+      font-size: 16px;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .form-group { margin-bottom: 4px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label {
+      display: block;
+      font-size: 12px;
+      color: #555;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+    select, input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+      background: #fafafa;
+    }
+    select:focus, input:focus {
+      border-color: #1a6b3c;
+      background: white;
+    }
+    .symptoms-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .symptom-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .symptom-item:hover { border-color: #1a6b3c; }
+    .symptom-item input { width: auto; margin: 0; }
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: #1a6b3c;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.2s;
+    }
+    .submit-btn:hover { background: #145530; }
+    .result { display: none; }
+    .risk-banner {
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .risk-banner.green { background: #e8f5e9; border: 2px solid #4caf50; }
+    .risk-banner.orange { background: #fff3e0; border: 2px solid #ff9800; }
+    .risk-banner.red { background: #ffebee; border: 2px solid #f44336; }
+    .risk-banner h2 { font-size: 28px; margin-bottom: 6px; }
+    .risk-banner.green h2 { color: #2e7d32; }
+    .risk-banner.orange h2 { color: #e65100; }
+    .risk-banner.red h2 { color: #c62828; }
+    .risk-banner p { font-size: 14px; color: #444; }
+    .score-badge {
+      display: inline-block;
+      padding: 4px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .green .score-badge { background: #4caf50; color: white; }
+    .orange .score-badge { background: #ff9800; color: white; }
+    .red .score-badge { background: #f44336; color: white; }
+    .recs-list { list-style: none; }
+    .recs-list li {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      background: #f5f5f5;
+      border-left: 3px solid #1a6b3c;
+      line-height: 1.5;
+    }
+    .recs-list li:first-child {
+      background: #fff3e0;
+      border-left-color: #ff9800;
+    }
+    .history-btn {
+      width: 100%;
+      padding: 12px;
+      background: white;
+      color: #1a6b3c;
+      border: 2px solid #1a6b3c;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: all 0.2s;
+    }
+    .history-btn:hover { background: #1a6b3c; color: white; }
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .symptoms-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="navbar">
+    <div>
+      <h2>🏥 EKSU Health Monitor</h2>
+      <span id="welcomeName">Welcome back!</span>
+    </div>
+    <button class="logout" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="main">
+
+    <div class="welcome">
+      <h3>Daily Health Check-in</h3>
+      <p>Fill in your health details below. It takes less than 2 minutes and helps monitor your wellbeing.</p>
+    </div>
+
+    <!-- HEALTH FORM -->
+    <div class="card" id="formSection">
+      <h3>📋 Today's Health Inputs</h3>
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label>💧 Water Intake (glasses/day)</label>
+          <select id="water">
+            <option value="">Select</option>
+            <option value="less than 4">Less than 4</option>
+            <option value="4-6">4 – 6 glasses</option>
+            <option value="7-8">7 – 8 glasses</option>
+            <option value="more than 8">More than 8</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>😴 Sleep Duration (hours/night)</label>
+          <select id="sleep">
+            <option value="">Select</option>
+            <option value="less than 4">Less than 4 hrs</option>
+            <option value="4-5">4 – 5 hrs</option>
+            <option value="6-7">6 – 7 hrs</option>
+            <option value="8 or more">8 or more hrs</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>🍽️ Meals Per Day</label>
+          <select id="meals">
+            <option value="">Select</option>
+            <option value="none">No meals</option>
+            <option value="1">1 meal</option>
+            <option value="2">2 meals</option>
+            <option value="3 or more">3 or more</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>🌅 Breakfast Regularity</label>
+          <select id="breakfast">
+            <option value="">Select</option>
+            <option value="never">Never</option>
+            <option value="rarely">Rarely</option>
+            <option value="sometimes">Sometimes</option>
+            <option value="always">Always</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>⚖️ Weight (kg)</label>
+          <input type="number" id="weight" placeholder="e.g. 65" />
+        </div>
+
+        <div class="form-group">
+          <label>📏 Height (cm)</label>
+          <input type="number" id="height" placeholder="e.g. 170" />
+        </div>
+
+        <div class="form-group">
+          <label>🏃 Physical Activity</label>
+          <select id="activity">
+            <option value="">Select</option>
+            <option value="never">Never</option>
+            <option value="1-2">1 – 2x per week</option>
+            <option value="3-4">3 – 4x per week</option>
+            <option value="daily">Daily</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>😰 Academic Stress Level</label>
+          <select id="stress">
+            <option value="">Select</option>
+            <option value="low">Low</option>
+            <option value="moderate">Moderate</option>
+            <option value="high">High</option>
+            <option value="very high">Very High</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>😩 Fatigue Frequency</label>
+          <select id="fatigue">
+            <option value="">Select</option>
+            <option value="never">Never</option>
+            <option value="sometimes">Sometimes</option>
+            <option value="often">Often</option>
+            <option value="always">Always</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>🍴 Do You Skip Meals?</label>
+          <select id="skipping">
+            <option value="">Select</option>
+            <option value="never">Never</option>
+            <option value="sometimes">Sometimes</option>
+            <option value="often">Often</option>
+            <option value="always">Always</option>
+          </select>
+        </div>
+
+        <div class="form-group full">
+          <label>🤕 Headache Frequency</label>
+          <select id="headaches">
+            <option value="">Select</option>
+            <option value="never">Never</option>
+            <option value="rarely">Rarely</option>
+            <option value="sometimes">Sometimes</option>
+            <option value="frequently">Frequently</option>
+          </select>
+        </div>
+
+        <div class="form-group full">
+          <label>🩺 Current Symptoms (select all that apply)</label>
+          <div class="symptoms-grid">
+            <label class="symptom-item">
+              <input type="checkbox" value="dizziness"> Dizziness
+            </label>
+            <label class="symptom-item">
+              <input type="checkbox" value="weakness"> Weakness / Body Pain
+            </label>
+            <label class="symptom-item">
+              <input type="checkbox" value="difficulty concentrating"> Difficulty Concentrating
+            </label>
+            <label class="symptom-item">
+              <input type="checkbox" value="nausea"> Nausea
+            </label>
+            <label class="symptom-item">
+              <input type="checkbox" value="loss of appetite"> Loss of Appetite
+            </label>
+          </div>
+        </div>
+
+      </div>
+      <button class="submit-btn" onclick="submitHealth()">🔍 Check My Health Risk</button>
+    </div>
+
+    <!-- RESULT SECTION -->
+    <div class="result" id="resultSection">
+      <div class="risk-banner" id="riskBanner">
+        <div class="score-badge" id="scoreBadge"></div>
+        <h2 id="riskLevel"></h2>
+        <p id="riskMessage"></p>
+      </div>
+
+      <div class="card">
+        <h3>💡 Personalised Recommendations</h3>
+        <ul class="recs-list" id="recsList"></ul>
+      </div>
+
+      <button class="submit-btn" onclick="resetForm()">📋 Submit Another Check-in</button>
+      <button class="history-btn" onclick="window.location.href='/history.html'">📊 View My Health History</button>
+    </div>
+
+  </div>
+
+  <script>
+    // Auth check
+    const token = localStorage.getItem('token');
+    const fullname = localStorage.getItem('fullname');
+    if (!token) window.location.href = '/';
+    document.getElementById('welcomeName').textContent = 'Welcome, ' + (fullname || 'Student') + '!';
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = '/';
+    }
+
+    async function submitHealth() {
+      const data = {
+        water: document.getElementById('water').value,
+        sleep: document.getElementById('sleep').value,
+        meals: document.getElementById('meals').value,
+        breakfast: document.getElementById('breakfast').value,
+        weight: document.getElementById('weight').value,
+        height: document.getElementById('height').value,
+        activity: document.getElementById('activity').value,
+        stress: document.getElementById('stress').value,
+        fatigue: document.getElementById('fatigue').value,
+        skipping: document.getElementById('skipping').value,
+        headaches: document.getElementById('headaches').value,
+        symptoms: Array.from(document.querySelectorAll('.symptoms-grid input:checked')).map(c => c.value)
+      };
+
+      if (!data.water || !data.sleep || !data.meals) {
+        return alert('Please fill in at least water intake, sleep, and meals.');
+      }
+
+      const res = await fetch('/api/health/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify(data)
+      });
+
+      const json = await res.json();
+      if (!res.ok) return alert(json.error || 'Something went wrong');
+
+      showResult(json.result);
+    }
+
+    function showResult(result) {
+      document.getElementById('formSection').style.display = 'none';
+      document.getElementById('resultSection').style.display = 'block';
+
+      const banner = document.getElementById('riskBanner');
+      banner.className = 'risk-banner ' + result.color;
+
+      document.getElementById('scoreBadge').textContent = 'Score: ' + result.score + ' points';
+      document.getElementById('riskLevel').textContent = result.risk;
+      document.getElementById('riskMessage').textContent = result.message;
+
+      const list = document.getElementById('recsList');
+      list.innerHTML = '';
+      result.recommendations.forEach(rec => {
+        const li = document.createElement('li');
+        li.textContent = rec;
+        list.appendChild(li);
+      });
+
+      window.scrollTo(0, 0);
+    }
+
+    function resetForm() {
+      document.getElementById('formSection').style.display = 'block';
+      document.getElementById('resultSection').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
