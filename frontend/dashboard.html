@@ -8,7 +8,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: #f0f4f0;
+      background: #FAF6EF;
       min-height: 100vh;
     }
     .navbar {
@@ -36,7 +36,7 @@
       border-radius: 12px;
       padding: 20px 24px;
       margin-bottom: 20px;
-      border-left: 5px solid #1a6b3c;
+      border-left: 5px solid #E8A33D;
     }
     .welcome h3 { color: #1a6b3c; font-size: 18px; }
     .welcome p { color: #666; font-size: 13px; margin-top: 4px; }
@@ -63,17 +63,18 @@
     .form-group.full { grid-column: 1 / -1; }
     label {
       display: block;
-      font-size: 12px;
+      font-size: 13px;
       color: #555;
       margin-bottom: 5px;
       font-weight: 600;
     }
     select, input {
       width: 100%;
-      padding: 10px 12px;
+      padding: 12px 14px;
+      min-height: 44px;
       border: 1px solid #ddd;
       border-radius: 8px;
-      font-size: 13px;
+      font-size: 15px;
       outline: none;
       background: #fafafa;
     }
@@ -99,15 +100,21 @@
       transition: all 0.2s;
     }
     .symptom-item:hover { border-color: #1a6b3c; }
+    .symptom-item:has(input:checked) {
+      border-color: #1a6b3c;
+      background: #eaf5ee;
+      font-weight: 600;
+    }
     .symptom-item input { width: auto; margin: 0; }
     .submit-btn {
       width: 100%;
-      padding: 14px;
+      padding: 16px;
+      min-height: 48px;
       background: #1a6b3c;
       color: white;
       border: none;
       border-radius: 10px;
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 700;
       cursor: pointer;
       margin-top: 8px;
@@ -186,10 +193,10 @@
 
   <div class="main">
 
-<div class="welcome" id="welcomeSection">
-  <h3>Daily Health Check-in</h3>
-  <p>Fill in your health details below. It takes less than 2 minutes and helps monitor your wellbeing.</p>
-</div>
+    <div class="welcome" id="welcomeSection">
+      <h3>💚 How are you feeling today?</h3>
+      <p>Takes less than 2 minutes. Your answers stay private and help us look out for you.</p>
+    </div>
 
     <!-- HEALTH FORM -->
     <div class="card" id="formSection">
@@ -354,7 +361,11 @@
     const token = localStorage.getItem('token');
     const fullname = localStorage.getItem('fullname');
     if (!token) window.location.href = '/';
-    document.getElementById('welcomeName').textContent = 'Welcome, ' + (fullname || 'Student') + '!';
+    const firstName = (fullname || 'Student').split(' ')[0];
+    const hour = new Date().getHours();
+    const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+    const greetEmoji = hour < 12 ? '☀️' : hour < 17 ? '👋' : '🌙';
+    document.getElementById('welcomeName').textContent = greeting + ', ' + firstName + ' ' + greetEmoji;
 
     function logout() {
       localStorage.clear();
@@ -423,7 +434,7 @@
       document.getElementById('welcomeSection').style.display = 'block';
       document.getElementById('formSection').style.display = 'block';
       document.getElementById('resultSection').style.display = 'none';
-        }
+    }
   </script>
 </body>
 </html>
