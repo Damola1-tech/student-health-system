@@ -186,10 +186,10 @@
 
   <div class="main">
 
-    <div class="welcome">
-      <h3>Daily Health Check-in</h3>
-      <p>Fill in your health details below. It takes less than 2 minutes and helps monitor your wellbeing.</p>
-    </div>
+<div class="welcome" id="welcomeSection">
+  <h3>Daily Health Check-in</h3>
+  <p>Fill in your health details below. It takes less than 2 minutes and helps monitor your wellbeing.</p>
+</div>
 
     <!-- HEALTH FORM -->
     <div class="card" id="formSection">
@@ -397,6 +397,7 @@
     }
 
     function showResult(result) {
+      document.getElementById('welcomeSection').style.display = 'none';
       document.getElementById('formSection').style.display = 'none';
       document.getElementById('resultSection').style.display = 'block';
 
@@ -419,9 +420,10 @@
     }
 
     function resetForm() {
+      document.getElementById('welcomeSection').style.display = 'block';
       document.getElementById('formSection').style.display = 'block';
       document.getElementById('resultSection').style.display = 'none';
-    }
+        }
   </script>
 </body>
 </html>
